@@ -71,7 +71,7 @@ tools = [
             'description': 'Creates a new file or overwrites an existing one at the specified path with the provided content, returning the saved content.',
             'parameters': {
                 'type': 'object',
-                'required': ['path_str'],
+                'required': ['path_str', 'content'],
                 'properties': {
                     'path_str': {
                         'type': 'string', 
@@ -88,7 +88,20 @@ tools = [
 ]
 
 messages = [
-    {"role": "user", "content": "Read client.py, tools.py and requirements.txt files at root folder and create me a readme documentation file for this project at the root folder"}
+    {
+        "role": "system", 
+        "content": (
+            "You are an autonomous software agent. You must work strictly in steps: "
+            "1st - Use the read_file tool to read ALL necessary files. "
+            "2nd - Wait for the return with the files' content. "
+            "3rd - ONLY AFTER reading and processing the files, create the README. "
+            "CRITICAL RULE: Never use placeholders or variables like {client_content}. Write the actual, full content in the final file."
+        )
+    },
+    {
+        "role": "user", 
+        "content": "crie um novo arquivo para responder essa questão do beecrowd em pascal: Bem-vindo ao beecrowd! O seu primeiro programa em qualquer linguagem de programação normalmente é o \"Hello World!\". Neste primeiro problema tudo o que você precisa fazer é imprimir esta mensagem na tela. Entrada Este problema não possui nenhuma entrada. Saída Você deve imprimir a mensagem \"Hello World!\" e em seguida o final de linha, conforme o exemplo abaixo."
+    }
 ]
 
 response = chat(
@@ -114,9 +127,11 @@ if "tool_calls" in msg:
 
             print(f"Ollama decidiu usar a ferramenta {func_name} com os argumentos {func_args}")
 
+            contextual_result = f"Result of the {func_name} tool for the arguments {func_args}:\n\n{result}"
+
             messages.append({
                 "role": "tool",
-                "content": str(result)
+                "content": contextual_result
             })
 
 final = chat(
